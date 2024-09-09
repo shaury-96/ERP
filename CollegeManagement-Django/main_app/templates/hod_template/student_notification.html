@@ -3,7 +3,7 @@
 {% block page_title %}{{page_title}}{% endblock page_title %}
 
 {% block extra_head %}
-    <meta name="vapid-key" content="{{ vapid_key }}">
+    
     {% if user.id %}
         <meta name="user_id" content="{{ user.id }}">
     {% endif %}
@@ -50,7 +50,7 @@
                                             src="{{student.profile_pic}}" alt="">
                                         {% endif %}
                                     </td>
-                                    <td><button data-toggle = "modal" data-target = "#myModal"class="btn btn-primary show_notification" value="{{student.id}}">Send Notification</button> 
+                                    <td><button data-toggle = "modal" data-target = "#myModal"class="btn btn-primary show_notification" data-student-id="{{student.id}}">Send Notification</button> 
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -79,7 +79,7 @@
          <div class = "modal-body">
             <div class="form-group">
                 <input type="text" id="message" class='form-control'>
-                <input type="hidden"  id="student_id" class='form-control'>
+                <input type="hidden" id="student_id" class='form-control'>
             </div>
          </div>
          
@@ -99,43 +99,45 @@
 </div><!-- /.modal -->
 {% endblock content %}
 {% block custom_js %}
-  <script src="{% static '/js/registerSw.js' %}"></script>
+  <!-- <script src="{% static 'dist/js/registerSw.js' %}"></script> -->
 
-  <script>
-      $(".show_notification").click(function(){
-          $("#student_id").val($(this).val())
-      })
-      $(".send_notification").click(function(){
-        //   var id = $("#student_id").val()
-        const meta = document.querySelector('meta[name="user_id"]')
-        const id = meta ? meta.content : null;
-          var message = $("#message").val()
-          sendNotification(id,message);
-      })
-    function sendNotification(id,message){
+  
+
+    <script>
+         $('#myModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); 
+        var studentId = button.data('student-id');
+        var modal = $(this);
+        
+        modal.find('#student_id').val(staffId);
+        });
+
+       $(".send_notification").click(function() {
+        var userId = $("#student_id").val();  
+        var message= $("#message").val();
+        console.log(userId, message);
+       
         $.ajax({
-            url: "{% url 'send_student_notification' %}",
+            url: '/send_notification/',  
             type: 'POST',
-            data: {
-                id: id,
-                message:message
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}', 
+            },
+            data: { 'user_id': userId , 'message': message},
+            success: function(data) {
+                if (data.status === 'success') {
+                    alert('Notification sent successfully!');
+                } else {
+                    alert('Failed to send notification: ' + data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+                alert('An error occurred while sending the notification.');
             }
-        }).done(function (response) {
-           
-                
-            if (response == 'True'){
-                alert("Notification Sent");
-                location.reload();
-              }else{
-                alert("Notification could not be saved. Please try again.");
-              }
-               
-           
-        }).fail(function (response) {
-            alert("Error in saving token")
-        })
+        });
+    });
+    </script>
 
-    }
 
-  </script>
 {% endblock custom_js %}

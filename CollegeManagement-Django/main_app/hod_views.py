@@ -12,9 +12,11 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import UpdateView
 from django.conf import settings
-
+from webpush.utils import send_to_subscription
 from .forms import *
 from .models import *
+
+
 
 
 def admin_home(request):
@@ -624,92 +626,85 @@ def admin_notify_staff(request):
 
 def admin_notify_student(request):
     student = CustomUser.objects.filter(user_type=3)
-    webpush_settings = getattr(settings, 'WEBPUSH_SETTINGS', {})
-    vapid_key = webpush_settings.get('VAPID_PUBLIC_KEY')
     user = request.user
 
     context = {
         'user': user, 
-        'vapid_key': vapid_key,
         'page_title': "Send Notifications To Students",
         'students': student
     }
     return render(request, "hod_template/student_notification.html", context)
 
-@require_POST
-@csrf_exempt
-def send_student_push(request):
-    try:
-        body = request.POST
-        # data = json.loads(body)
-
-        if 'id' not in body or 'message' not in body:
-            return JsonResponse(status=400, data={"message": "Invalid data format"})
-
-        user_id = body['id']
-        message=body['message']
-        user = get_object_or_404(CustomUser, id=user_id)
-        payload = {'head': 'Notification', 'body': message}
-        send_user_notification(user=user, payload=payload, ttl=1000)
-
-        # return JsonResponse(status=200, data={"message": "Web push successful"})
-        return HttpResponse("True")
-    except TypeError:
-        return HttpResponse("False")
-        # return JsonResponse(status=500, data={"message": "An error occurred"})
-
-# @csrf_exempt
-# def send_student_notification(request):
-#     id = request.POST.get('id')
-#     message = request.POST.get('message')
-#     student = get_object_or_404(Student, admin_id=id)
-#     try:
-#         url = "https://fcm.googleapis.com/fcm/send"
-#         body = {
-#             'notification': {
-#                 'title': "Student Management System",
-#                 'body': message,
-#                 'click_action': reverse('student_view_notification'),
-#                 'icon': static('dist/img/AdminLTELogo.png')
-#             },
-#             'to': student.admin.fcm_token
-#         }
-#         headers = {'Authorization':
-#                    'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
-#                    'Content-Type': 'application/json'}
-#         data = requests.post(url, data=json.dumps(body), headers=headers)
-#         notification = NotificationStudent(student=student, message=message)
-#         notification.save()
-#         return HttpResponse("True")
-#     except Exception as e:
-#         return HttpResponse("False")
 
 
-@csrf_exempt
-def send_staff_notification(request):
-    id = request.POST.get('id')
+def send_push_notification_to_user(request):
+    user_id = request.POST.get('user_id')
     message = request.POST.get('message')
-    staff = get_object_or_404(Staff, admin_id=id)
+    
+    if not user_id:
+        return JsonResponse({'status': 'failure', 'message': 'User ID is required'}, status=400)
+
     try:
-        url = "https://fcm.googleapis.com/fcm/send"
-        body = {
-            'notification': {
-                'title': "Student Management System",
-                'body': message,
-                'click_action': reverse('staff_view_notification'),
-                'icon': static('dist/img/AdminLTELogo.png')
-            },
-            'to': staff.admin.fcm_token
+        student = get_object_or_404(Student, admin_id=user_id) #saving notification in the database for the user
+        user = CustomUser.objects.get(id=user_id)
+        subscription = PushSubscription.objects.get(user=user)
+     
+        payload = {
+            "head": "Notification from Admin",
+            "body": message,
+            "icon": "\static\icon.png",
+            "url": "127.0.0.1:8000"
         }
-        headers = {'Authorization':
-                   'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
-                   'Content-Type': 'application/json'}
-        data = requests.post(url, data=json.dumps(body), headers=headers)
+        payload = json.dumps(payload)
+      
+        send_to_subscription(subscription, payload,ttl=1000)
+        notification = NotificationStudent(student=student, message=message)
+        notification.save()
+        return JsonResponse({'status': 'success'})
+    
+    except CustomUser.DoesNotExist:
+        return JsonResponse({'status': 'failure', 'message': 'User not found'}, status=404)
+    except PushSubscription.DoesNotExist:
+        return JsonResponse({'status': 'failure', 'message': 'No subscription found for this user'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'failure', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+def send_push_notification_to_staff(request):
+    id = request.POST.get('user_id')
+    message = request.POST.get('message')
+    
+    
+    if not id:
+        return JsonResponse({'status': 'failure', 'message': 'User ID is required'}, status=400)
+
+    try:
+        staff = get_object_or_404(Staff, admin_id=id)
+        user = CustomUser.objects.get(id=id)
+        subscription = PushSubscription.objects.get(user=user)
+
+     
+        payload = {
+            "head": "Notification from Admin",
+            "body": message,
+            "icon": "\static\icon.png",
+            "url": "127.0.0.1:8000"
+        }
+        payload = json.dumps(payload)
+      
+        send_to_subscription(subscription, payload,ttl=1000)
         notification = NotificationStaff(staff=staff, message=message)
         notification.save()
-        return HttpResponse("True")
+        return JsonResponse({'status': 'success'})
+    
+    except CustomUser.DoesNotExist:
+        return JsonResponse({'status': 'failure', 'message': 'User not found'}, status=404)
+    except PushSubscription.DoesNotExist:
+        return JsonResponse({'status': 'failure', 'message': 'No subscription found for this user'}, status=404)
     except Exception as e:
-        return HttpResponse("False")
+        return JsonResponse({'status': 'failure', 'message': str(e)}, status=500)
+       
 
 
 def delete_staff(request, staff_id):

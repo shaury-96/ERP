@@ -174,6 +174,11 @@ class StudentResult(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class PushSubscription(models.Model):
+    endpoint = models.URLField(null=True)
+    p256dh = models.TextField(null=True)
+    auth = models.TextField(null=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
 @receiver(post_save, sender=CustomUser)
 def create_user_profile(sender, instance, created, **kwargs):

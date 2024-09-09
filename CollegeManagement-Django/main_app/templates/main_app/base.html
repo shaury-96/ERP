@@ -5,6 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="vapid-key" content="BP79mrVsfip-7xvHq0-iw5LZ7bdqFp2A57tDvTWHtgHPgGuYUUUqY_r0Quw1FRnl16mgKqIragDmibGYBflfpf4">
 
     {% block extra_head %}
     
@@ -41,7 +42,7 @@
     {% block extra_scripts %}
    
     {% endblock extra_scripts %}
-
+    
     <div class="wrapper">
 
         <!-- Navbar -->
@@ -54,7 +55,7 @@
 
             </ul>
 
-
+            <button type="button" class="btn btn-tool" id="notify-btn">Notify me</button>
         </nav>
         <!-- /.navbar -->
 
@@ -152,6 +153,14 @@
     <script src="{% static 'dist/js/pages/dashboard.js'%} "></script>
     <!-- AdminLTE for demo purposes -->
     <script src="{% static 'dist/js/demo.js'%} "></script>
+    <!-- <script src="{% static 'dist/js/registerSw.js' %}"></script> -->
+    <script src="{% static 'dist/js/swscript.js' %}"></script>
+    <script>
+        document.getElementById('notify-btn').addEventListener('click', function() {
+            console.log("clicked");
+            main();  
+        });
+    </script>
     {% block custom_js %}
 
     {% endblock custom_js %}

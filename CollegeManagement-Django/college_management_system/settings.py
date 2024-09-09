@@ -125,12 +125,12 @@ else:
 
 
 WEBPUSH_SETTINGS = {
-   "VAPID_PUBLIC_KEY": "" ,
-   "VAPID_PRIVATE_KEY": "" ,
-   "VAPID_ADMIN_EMAIL": "admin@gmail.com"
+   "VAPID_PUBLIC_KEY": "BKu-pT0gEj0Xdr4tzJe1oisdaa8ZapnuObYc5jtQR9olLUDAoGX3YtoahoA7_jjSTwX__DFsLSLtLmFwsui9SP4",
+   "VAPID_PRIVATE_KEY": "rWVmK0NXNjmLN03P-zeTZucAnBz1oG0oNeL9JfBXbYI",
+   "VAPID_ADMIN_EMAIL": "shaurydeepsaxena@gmail.com"
 }
 
-# Internationalization
+# Internationalizations
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'

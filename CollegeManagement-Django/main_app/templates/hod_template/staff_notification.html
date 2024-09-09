@@ -42,7 +42,8 @@
                                             src="{{staff.profile_pic}}" alt="">
                                         {% endif %}
                                     </td>
-                                    <td><button data-toggle = "modal" data-target = "#myModal"class="btn btn-primary show_notification" value="{{staff.id}}">Send Notification</button> 
+                                    <td>
+                                        <button data-toggle = "modal" data-target = "#myModal"class="btn btn-primary show_notification" data-staff-id="{{staff.id}}">Send Notification</button> 
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -71,7 +72,7 @@
          <div class = "modal-body">
             <div class="form-group">
                 <input type="text" id="message" class='form-control'>
-                <input type="hidden"  id="staff_id" class='form-control'>
+                <input type="hidden" id="staff_id" class='form-control'>
             </div>
          </div>
          
@@ -91,37 +92,40 @@
 </div><!-- /.modal -->
 {% endblock content %}
 {% block custom_js %}
-  <script>
-      $(".show_notification").click(function(){
-          $("#staff_id").val($(this).val())
-      })
-      $(".send_notification").click(function(){
-          var id = $("#staff_id").val()
-          var message = $("#message").val()
-          sendNotification(id,message);
-      })
-    function sendNotification(id,message){
-        $.ajax({
-            url: "{% url 'send_staff_notification' %}",
-            type: 'POST',
-            data: {
-                id: id,
-                message:message
+<script>
+    $('#myModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); 
+    var staffId = button.data('staff-id');
+    var modal = $(this);
+    
+    modal.find('#staff_id').val(staffId);
+    });
+    
+    $(".send_notification").click(function() {
+    var userId = $("#staff_id").val();  
+    var message= $("#message").val();
+    console.log(userId, message);
+    
+    $.ajax({
+        url: '/send_staff_notification/',  
+        type: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}', 
+        },
+        data: { 'user_id': userId , 'message': message},
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('Notification sent successfully!');
+            } else {
+                alert('Failed to send notification: ' + data.message);
             }
-        }).done(function (response) {
-           
-          if (response == 'True'){
-            alert("Notification Sent");
-            location.reload();
-          }else{
-            alert("Notification could not be saved. Please try again.");
-          }
-           
-        }).fail(function (response) {
-            alert("Error in saving token")
-        })
-
-    }
-
-  </script>
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', error);
+            alert('An error occurred while sending the notification.');
+        }
+    });
+});
+    
+</script>
 {% endblock custom_js %}

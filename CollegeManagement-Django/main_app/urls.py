@@ -26,18 +26,14 @@ from . import hod_views, staff_views, student_views, views
 urlpatterns = [
     path("", views.login_page, name='login_page'),
     path("get_attendance", views.get_attendance, name='get_attendance'),
-    path("firebase-messaging-sw.js", views.showFirebaseJS, name='showFirebaseJS'),
     path("doLogin/", views.doLogin, name='user_login'),
     path("logout_user/", views.logout_user, name='user_logout'),
     path("admin/home/", hod_views.admin_home, name='admin_home'),
     path("staff/add", hod_views.add_staff, name='add_staff'),
     path("course/add", hod_views.add_course, name='add_course'),
-    path("send_student_notification/", hod_views.send_student_push,
-         name='send_student_notification'),
-     path('webpush/', include('webpush.urls')),
-#     path("send_student_notification/", hod_views.send_student_notification,
-#          name='send_student_notification'),
-    path("send_staff_notification/", hod_views.send_staff_notification,
+    path('send_notification/', hod_views.send_push_notification_to_user, name='send_push_notification_to_user'),
+     path('webpush/save_information/', views.save_webpush_subscription, name='save_webpush_subscription'),
+    path("send_staff_notification/", hod_views.send_push_notification_to_staff,
          name='send_staff_notification'),
     path("add_session/", hod_views.add_session, name='add_session'),
     path("admin_notify_student", hod_views.admin_notify_student,
@@ -137,6 +133,6 @@ urlpatterns = [
     path('student/view/result/', student_views.student_view_result,
          name='student_view_result'),
 
-     path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/x-javascript'))
+     path('ssw.js', TemplateView.as_view(template_name='sw.js', content_type='application/x-javascript'))
 
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
