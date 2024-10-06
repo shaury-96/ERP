@@ -28,10 +28,10 @@ SECRET_KEY = 'f2zx8*lb*em*-*b+!&1lpp&$_9q9kmkar+l3x90do@s(+sr&x7'  # Consider us
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']  # Not recommended but useful in dev mode
+ALLOWED_HOSTS = ['127.0.0.1', 'tenant1.localhost', 'tenant2.localhost']  # Not recommended but useful in dev mode
 
 
-# Application definition
+# Application definition 
 
 INSTALLED_APPS = [
     # Django Apps
@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'webpush',
 
     # My Apps
-    'main_app.apps.MainAppConfig'
+    'main_app.apps.MainAppConfig',
+    
 ]
 
 MIDDLEWARE = [
@@ -61,6 +62,7 @@ MIDDLEWARE = [
 
     # My Middleware
     'main_app.middleware.LoginCheckMiddleWare',
+    
 ]
 
 ROOT_URLCONF = 'college_management_system.urls'
@@ -83,15 +85,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'college_management_system.wsgi.application'
 
-
+DATABASE_ROUTERS = ['college_management_system.db_router.TenantRouter']
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'erpdb',
@@ -99,8 +96,42 @@ DATABASES = {
         'PASSWORD': 'pass',
         'HOST': 'localhost',
         'PORT': '3306'
-    }
+    
+    },
+    #  'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'erptenants',
+    #     'USER': 'root',
+    #     'PASSWORD': 'pass',
+    #     'HOST': 'localhost',
+    #     'PORT': '3306',
+    # },
+    # 'tenant1': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'erpdb',
+    #     'USER': 'root',
+    #     'PASSWORD': 'pass',
+    #     'HOST': 'localhost',
+    #     'PORT': '3306'
+    
+    # },
+    
 }
+
+# DATABASES = {
+#     # 'default': {
+#     #     'ENGINE': 'django.db.backends.sqlite3',
+#     #     'NAME': BASE_DIR / 'db.sqlite3',
+#     # }
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'erpdb',
+#         'USER': 'root',
+#         'PASSWORD': 'pass',
+#         'HOST': 'localhost',
+#         'PORT': '3306'
+#     }
+# }
 
 
 # Password validation
