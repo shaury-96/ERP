@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 # import dj_database_url
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,12 +24,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'f2zx8*lb*em*-*b+!&1lpp&$_9q9kmkar+l3x90do@s(+sr&x7'  # Consider using your secret key
+load_dotenv()
+SECRET_KEY = os.getenv('SECRET_KEY')  
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'tenant1.localhost', 'tenant2.localhost']  # Not recommended but useful in dev mode
+ALLOWED_HOSTS = ['127.0.0.1', 'tenant1.localhost', 'tenant2.localhost', 'localhost']  # Not recommended but useful in dev mode
 
 
 # Application definition 
@@ -45,10 +47,18 @@ INSTALLED_APPS = [
 
     # My Apps
     'main_app.apps.MainAppConfig',
+    # 'django_tenants',
+
     
 ]
 
+# TENANT_APPS=['client']
+
+# INSTALLED_APPS = SHARED_APPS + [app for app in TENANT_APPS if app not in SHARED_APPS]
+
 MIDDLEWARE = [
+    'college_management_system.middleware.TenantMiddleware',
+    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,6 +72,7 @@ MIDDLEWARE = [
 
     # My Middleware
     'main_app.middleware.LoginCheckMiddleWare',
+    
     
 ]
 
@@ -85,53 +96,46 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'college_management_system.wsgi.application'
 
-DATABASE_ROUTERS = ['college_management_system.db_router.TenantRouter']
+
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'erpdb',
-        'USER': 'root',
-        'PASSWORD': 'pass',
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
         'HOST': 'localhost',
         'PORT': '3306'
     
     },
-    #  'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'erptenants',
-    #     'USER': 'root',
-    #     'PASSWORD': 'pass',
-    #     'HOST': 'localhost',
-    #     'PORT': '3306',
-    # },
-    # 'tenant1': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'erpdb',
-    #     'USER': 'root',
-    #     'PASSWORD': 'pass',
-    #     'HOST': 'localhost',
-    #     'PORT': '3306'
+   
+    'tenant1': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'tenant1db',
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': 'localhost',
+        'PORT': '3306'
     
-    # },
+    },
+
+    
+    'tenant2': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'tenant2db',
+         'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': 'localhost',
+        'PORT': '3306'
+    
+    },
+    
     
 }
 
-# DATABASES = {
-#     # 'default': {
-#     #     'ENGINE': 'django.db.backends.sqlite3',
-#     #     'NAME': BASE_DIR / 'db.sqlite3',
-#     # }
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'erpdb',
-#         'USER': 'root',
-#         'PASSWORD': 'pass',
-#         'HOST': 'localhost',
-#         'PORT': '3306'
-#     }
-# }
+DATABASE_ROUTERS = ['college_management_system.db_router.TenantRouter']
+
 
 
 # Password validation
@@ -156,9 +160,9 @@ else:
 
 
 WEBPUSH_SETTINGS = {
-   "VAPID_PUBLIC_KEY": "BKu-pT0gEj0Xdr4tzJe1oisdaa8ZapnuObYc5jtQR9olLUDAoGX3YtoahoA7_jjSTwX__DFsLSLtLmFwsui9SP4",
-   "VAPID_PRIVATE_KEY": "rWVmK0NXNjmLN03P-zeTZucAnBz1oG0oNeL9JfBXbYI",
-   "VAPID_ADMIN_EMAIL": "shaurydeepsaxena@gmail.com"
+   "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY"),
+   "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY"),
+   "VAPID_ADMIN_EMAIL": os.getenv("VAPID_ADMIN_KEY")
 }
 
 # Internationalizations
@@ -204,3 +208,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # prod_db = dj_database_url.config(conn_max_age=500)
 # DATABASES['default'].update(prod_db)
+
+# TENANT_MODEL="main_app.Client"
+# TENANT_DOMAIN_MODEL="main_app.Domain"

@@ -7,6 +7,14 @@ from django.contrib.auth.models import AbstractUser
 
 
 
+# class Client(TenantMixin):
+#     name=models.CharField(max_length=100)
+#     created_on=models.DateField(auto_now_add=True)
+
+# class Domain(DomainMixin):
+#     pass
+
+
 
 class CustomUserManager(UserManager):
     def _create_user(self, email, password, **extra_fields):
